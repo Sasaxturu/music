@@ -7,6 +7,7 @@ from telethon.sessions import StringSession
 from pytgcalls import PyTgCalls, idle
 from pytgcalls.types import MediaStream
 from pytgcalls.exceptions import NoActiveGroupCall
+import uuid
 
 # Masukkan API ID dan API Hash dari my.telegram.org
 api_id = int(os.getenv('API_ID'))
@@ -18,8 +19,8 @@ pytgcalls = PyTgCalls(client)
 
 # Fungsi untuk membersihkan dan mempersingkat nama file
 def clean_filename(filename):
-    filename = re.sub(r'[^a-zA-Z0-9\-_]', '_', filename)
-    return filename[:50]  # Potong nama file jika terlalu panjang
+    filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
+    return filename[:50]  # Batas maksimal 50 karakter agar aman
 
 # Fungsi mengunduh file dan mengonversi ke raw Opus
 async def download_and_convert(api_url, chat_id, is_audio=True):
@@ -33,7 +34,7 @@ async def download_and_convert(api_url, chat_id, is_audio=True):
                 file_url = result['data']['url']
                 title = clean_filename(result['data']['title'])
                 ext = 'mp3' if is_audio else 'mp4'
-                filename = f"{chat_id}_{title}.{ext}"
+                filename = f"{chat_id}_{title}_{uuid.uuid4().hex[:8]}.{ext}"
 
                 async with session.get(file_url, headers=headers) as file_response:
                     with open(filename, 'wb') as file:
