@@ -16,10 +16,10 @@ session_string = os.getenv('SESSION_STRING')
 client = TelegramClient(StringSession(session_string), api_id, api_hash)
 pytgcalls = PyTgCalls(client)
 
-# Fungsi untuk membersihkan nama file dan membatasi panjang nama file
+# Fungsi untuk membersihkan dan mempersingkat nama file
 def clean_filename(filename):
-    filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
-    return filename[:50]  # Batasi panjang nama file maksimal 50 karakter
+    filename = re.sub(r'[^a-zA-Z0-9\-_]', '_', filename)
+    return filename[:50]  # Potong nama file jika terlalu panjang
 
 # Fungsi mengunduh file dan mengonversi ke raw Opus
 async def download_and_convert(api_url, chat_id, is_audio=True):
