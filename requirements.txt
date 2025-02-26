@@ -1,0 +1,4 @@
+aiohttp
+telethon
+pytgcalls==2.0.6
+ffmpeg
