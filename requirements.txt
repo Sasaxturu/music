@@ -1,4 +1,4 @@
 aiohttp
 telethon
-pytgcalls==2.0.6
+git+https://github.com/pytgcalls/pytgcalls.git
 ffmpeg
