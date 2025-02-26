@@ -1,3 +1,4 @@
+import re
 import asyncio
 import os
 import aiohttp
@@ -15,6 +16,10 @@ session_string = os.getenv('SESSION_STRING')
 client = TelegramClient(StringSession(session_string), api_id, api_hash)
 pytgcalls = PyTgCalls(client)
 
+# Fungsi untuk membersihkan nama file dari karakter aneh
+def clean_filename(filename):
+    return re.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', filename)
+
 # Fungsi mengunduh file dan mengonversi ke raw Opus
 async def download_and_convert(api_url, chat_id, is_audio=True):
     headers = {'accept': '*/*'}
@@ -25,7 +30,7 @@ async def download_and_convert(api_url, chat_id, is_audio=True):
             result = await response.json()
             if result.get('status'):
                 file_url = result['data']['url']
-                title = result['data']['title'].replace("/", "_").replace("\\", "_")
+                title = clean_filename(result['data']['title'])
                 ext = 'mp3' if is_audio else 'mp4'
                 filename = f"{chat_id}_{title}.{ext}"
 
