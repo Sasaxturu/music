@@ -16,12 +16,12 @@ session_string = os.getenv('SESSION_STRING')
 client = TelegramClient(StringSession(session_string), api_id, api_hash)
 pytgcalls = PyTgCalls(client)
 
-# Membersihkan nama file dan membatasi panjang
+# Fungsi untuk membersihkan nama file dari karakter aneh
 def clean_filename(filename, max_length=50):
     cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', filename)
-    return cleaned[:max_length]
+    return cleaned.strip().replace(' ', '_')[:max_length]
 
-# Mengunduh file dan konversi ke Opus
+# Fungsi mengunduh file dan mengonversi ke raw Opus
 async def download_and_convert(api_url, chat_id, is_audio=True):
     headers = {'accept': '*/*'}
     async with aiohttp.ClientSession() as session:
@@ -51,55 +51,51 @@ async def download_and_convert(api_url, chat_id, is_audio=True):
             else:
                 raise Exception("Gagal mendapatkan file dari API.")
 
-# Perintah streaming audio
 @client.on(events.NewMessage(pattern='/streamaudio (.+)'))
 async def stream_audio_handler(event):
     chat_id = event.chat_id
     youtube_url = event.pattern_match.group(1)
-    await event.reply(f"🎧 Streaming audio...\n{youtube_url}")
+    await event.reply(f"\U0001F3A7 Streaming...\n{youtube_url}")
 
     try:
         api_url = f"https://www.laurine.site/api/downloader/ytmp3?url={youtube_url}"
         audio_file = await download_and_convert(api_url, chat_id, is_audio=True)
         await pytgcalls.play(chat_id, MediaStream(audio_file))
-        await event.reply(f"✅ Streaming audio dimulai!\n🎵 {audio_file}")
+        await event.reply(f"\u2705 Streaming audio dimulai!\n\U0001F3B5 {audio_file}")
     except NoActiveGroupCall:
-        await event.reply("❌ Tidak ada panggilan grup aktif!")
+        await event.reply("\u274C Tidak ada panggilan grup aktif!")
     except Exception as e:
-        await event.reply(f"❌ Gagal streaming: {e}")
+        await event.reply(f"\u274C Gagal streaming: {e}")
 
-# Perintah streaming video
 @client.on(events.NewMessage(pattern='/streamvideo (.+)'))
 async def stream_video_handler(event):
     chat_id = event.chat_id
     youtube_url = event.pattern_match.group(1)
-    await event.reply(f"📹 Streaming video...\n{youtube_url}")
+    await event.reply(f"\U0001F4F9 Streaming...\n{youtube_url}")
 
     try:
         api_url = f"https://www.laurine.site/api/downloader/ytmp4?url={youtube_url}"
         video_file = await download_and_convert(api_url, chat_id, is_audio=False)
         await pytgcalls.play(chat_id, MediaStream(video_file))
-        await event.reply(f"✅ Streaming video dimulai!\n🎬 {video_file}")
+        await event.reply(f"\u2705 Streaming video dimulai!\n\U0001F3AC {video_file}")
     except NoActiveGroupCall:
-        await event.reply("❌ Tidak ada panggilan grup aktif!")
+        await event.reply("\u274C Tidak ada panggilan grup aktif!")
     except Exception as e:
-        await event.reply(f"❌ Gagal streaming: {e}")
+        await event.reply(f"\u274C Gagal streaming: {e}")
 
-# Perintah menghentikan streaming
 @client.on(events.NewMessage(pattern='/stop'))
 async def stop_stream_handler(event):
     chat_id = event.chat_id
     try:
         await pytgcalls.leave_group_call(chat_id)
-        await event.reply("⏹️ Streaming dihentikan!")
+        await event.reply("\u23F9\uFE0F Streaming dihentikan!")
     except Exception as e:
-        await event.reply(f"❌ Gagal menghentikan streaming: {str(e)}")
+        await event.reply(f"\u274C Gagal menghentikan streaming: {str(e)}")
     finally:
         for file in os.listdir():
             if file.startswith(str(chat_id)) and file.endswith(".opus"):
                 os.remove(file)
 
-# Menjalankan bot
 async def main():
     await client.start()
     await pytgcalls.start()
