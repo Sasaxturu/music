@@ -16,11 +16,12 @@ session_string = os.getenv('SESSION_STRING')
 client = TelegramClient(StringSession(session_string), api_id, api_hash)
 pytgcalls = PyTgCalls(client)
 
-# Fungsi untuk membersihkan nama file dari karakter aneh
-def clean_filename(filename):
-    return re.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', filename)
+# Membersihkan nama file dan membatasi panjang
+def clean_filename(filename, max_length=50):
+    cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1F]', '_', filename)
+    return cleaned[:max_length]
 
-# Fungsi mengunduh file dan mengonversi ke raw Opus
+# Mengunduh file dan konversi ke Opus
 async def download_and_convert(api_url, chat_id, is_audio=True):
     headers = {'accept': '*/*'}
     async with aiohttp.ClientSession() as session:
@@ -50,11 +51,12 @@ async def download_and_convert(api_url, chat_id, is_audio=True):
             else:
                 raise Exception("Gagal mendapatkan file dari API.")
 
+# Perintah streaming audio
 @client.on(events.NewMessage(pattern='/streamaudio (.+)'))
 async def stream_audio_handler(event):
     chat_id = event.chat_id
     youtube_url = event.pattern_match.group(1)
-    await event.reply(f"🎧 Streaming...\n{youtube_url}")
+    await event.reply(f"🎧 Streaming audio...\n{youtube_url}")
 
     try:
         api_url = f"https://www.laurine.site/api/downloader/ytmp3?url={youtube_url}"
@@ -66,11 +68,12 @@ async def stream_audio_handler(event):
     except Exception as e:
         await event.reply(f"❌ Gagal streaming: {e}")
 
+# Perintah streaming video
 @client.on(events.NewMessage(pattern='/streamvideo (.+)'))
 async def stream_video_handler(event):
     chat_id = event.chat_id
     youtube_url = event.pattern_match.group(1)
-    await event.reply(f"📹 Streaming...\n{youtube_url}")
+    await event.reply(f"📹 Streaming video...\n{youtube_url}")
 
     try:
         api_url = f"https://www.laurine.site/api/downloader/ytmp4?url={youtube_url}"
@@ -82,6 +85,7 @@ async def stream_video_handler(event):
     except Exception as e:
         await event.reply(f"❌ Gagal streaming: {e}")
 
+# Perintah menghentikan streaming
 @client.on(events.NewMessage(pattern='/stop'))
 async def stop_stream_handler(event):
     chat_id = event.chat_id
@@ -95,6 +99,7 @@ async def stop_stream_handler(event):
             if file.startswith(str(chat_id)) and file.endswith(".opus"):
                 os.remove(file)
 
+# Menjalankan bot
 async def main():
     await client.start()
     await pytgcalls.start()
